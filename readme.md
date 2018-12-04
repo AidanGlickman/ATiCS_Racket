@@ -1,1 +1,1 @@
-# ATICS Racket Code
+# ATiCS Racket Code
