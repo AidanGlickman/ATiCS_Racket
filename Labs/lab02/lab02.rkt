@@ -1,5 +1,8 @@
 ; LISTS
 
+(define (test func expect)
+  (displayln (~a func " expects " expect)))
+
 ; Make (get-element list n) which takes a list and returns the nth element.  (Just like arrays, we will start counting from zero).  This is mimicking the list-ref function.
 
 (define (get-element list n)
@@ -13,11 +16,12 @@
 
 #| TEST CASES:
 
-(get-element '(3 2 1) 0) : 3
-(get-element '(3 2 1) 1) : 2
-(get-element '(3 2 1) 2) : 1
+(test (get-element '(3 2 1) 0) 3)
+(test (get-element '(3 2 1) 1) 2)
+(test (get-element '(3 2 1) 2) 1)
+(test (get-element '(3 2 1) 3) null)
 
-|#
+;|#
 
 ; Make (append-element list y) which takes a list x and an element, y, and returns list with y added to the end.  This is mimicking the append function.
 ; LIST FUNCTIONS
@@ -32,9 +36,11 @@
 
 #| TEST CASES:
 
-(append-element '(4 3 2) 1) : '(4 3 2 1)
+(test (append-element '(4 3 2) 1) '(4 3 2 1))
+(test (append-element '() 1) '(1))
+(test (append-element '(1) '()) '(1 '()))
 
-|#
+;|#
 
 ; Make (append-list first second) which takes a list first and a list second, and returns a combined list. This is mimicking the append function.
 
@@ -49,9 +55,11 @@
 
 #| TEST CASES:
 
-(append-list '(1 2 3 4) '(5 6 7 8)) : '(1 2 3 4 5 6 7 8)
+(test (append-list '(1 2 3 4) '(5 6 7 8)) '(1 2 3 4 5 6 7 8))
+(test (append-list '() '(5 6 7 8)) '(5 6 7 8))
+(test (append-list '(1 2 3 4) '()) '(1 2 3 4))
 
-|#
+;|#
 
 ; Make (backwards list) which takes a list, and returns a reversed list. This is mimicking the reverse function.
 
@@ -66,9 +74,11 @@
 
 #| TEST CASES:
 
-(backwards '(1 2 3 4)) : '(4 3 2 1)
+(test (backwards '(1 2 3 4)) '(4 3 2 1))
+(test (backwards '(1)) '(1))
+(test (backwards '()) '())
 
-|#
+;|#
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; CREDIT CARDS
@@ -76,28 +86,30 @@
 ; We need to first find the digits of a number. Define the functions (toDigits : integer -> list) (toDigitsRev : integer -> list)
 
 (define (to-digits integer) 
+  (define last-digit (remainder integer 10))
+  (define other-digits (quotient integer 10))
   (cond
      ((not (exact-positive-integer? integer)) 
-      `())
+      '())
      (else 
-       (append-list (to-digits (quotient integer 10)) (list (remainder integer 10))))))
+       (append-element (to-digits other-digits) last-digit))))
 
 (define (to-digits-rev integer)
   (backwards (to-digits integer)))
 
 #| TEST CASES: 
 
-(to-digits 1234) : '(1 2 3 4)
-(to-digits 0)    : '()
-(to-digits -12)  : '()
+(test (to-digits 1234) '(1 2 3 4))
+(test (to-digits 0) '())
+(test (to-digits -10) '())
 
-(to-digits-rev 1234) : '(4 3 2 1)
-
-|#
+;|#
 
 ; Once we have the digits in the proper order, we need to double every other one. Define a function (doubleEveryOther : list -> list) Remember that doubleEveryOther should double every other number beginning from the right, that is, the second-to-last, fourth-to-last,… etc. numbers are doubled.
 
 (define (double-every-other list)
+  (define (dub-2nd-last list)
+    (* 2 (cadr list)))
   (define (create-list x y)
     (cons x (cons y null)))
   
@@ -108,39 +120,42 @@
       ((null? (cdr list))
        list)
       ((null? (cddr list)) 
-       (create-list (car list) (* 2 (cadr list))))
+       (create-list (car list) (dub-2nd-last list)))
       (else
-        (cons (car list) (cons (* 2 (cadr list)) (double-backwards (cddr list)))))))
+        (cons (car list) (cons (dub-2nd-last list) (double-backwards (cddr list)))))))
   (backwards (double-backwards (backwards list))))
 
 #| TEST CASES:
 
-(double-every-other '(1 2 3 4)) : '(2 2 6 4)
+(test (double-every-other '(1 2 3 4)) '(2 2 6 4))
+(test (double-every-other '(1 2 3)) '(1 4 3))
+(test (double-every-other '(1)) '(1))
 
-|#
+;|#
 
 ; Define the function sumDigits : list -> integer to calculate the sum of all digits.
 
 (define (sum-digits list)
-  (define (sum-of-num x) (if (= x 0) 0 (+ (modulo x 10) (sum-of-num (/ (- x (modulo x 10)) 10)))))
+  (define (sum-of-num x) 
+    (define last-digit (modulo x 10))
+    (if (= x 0) 0 (+ last-digit (sum-of-num (/ (- x last-digit) 10)))))
   (define (all-but-last list) (backwards (cdr (backwards list))))
   (define (last list) (car (backwards list)))
   (cond
     ((null? list)
-     null)
+     0)
     ((null? (cdr list))
      (car list))
     (else
       (sum-digits (append-element (all-but-last (cdr list)) (+ (last list) (sum-of-num (car list))))))))
 
-; NOTE: I know this function isn't perfect (if the last element is double digits it returns the wrong answer) BUT, due to the nature of the broader problem this edge case can literally never occur (the last element is never doubled, as it is every other from the right)
-
 #| TEST CASES:
 
-(sum-digits '(1 2 3 4)) : 10
-(sum-digits '(10 2 3 4)) : 10
+(test (sum-digits '(1 2 3 4)) 10)
+(test (sum-digits '(10 2 3 4)) 10)
+(test (sum-digits '()) 0)
 
-|#
+;|#
 
 ; Define the function validate : integer -> boolean that indicates whether an Integer could be a valid credit card number.
 
@@ -151,13 +166,12 @@
     (else
       false)))
 
-#|
+#| TEST CASES:
 
-TEST CASES:
+(test (validate 34) #t)
+(test (validate 123456789) #f)
+(test (validate 4012888888881881) #t)
+(test (validate 4012888888881882) #f)
+(test (validate 0) #t)
 
-(validate 34) : #t
-(validate 123456789) : #f
-(validate 4012888888881881) : #t
-(validate 4012888888881882) : #f
-
-|#
+;|#

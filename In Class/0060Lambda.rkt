@@ -1,0 +1,3 @@
+; LAMBDAS
+(define weird-list '(0 1 (sqrt pi) pi (expt pi 2) (expt pi 3))) ; This list should theoretically contain values having to do with pi, but you cannot have functions execute inside lists so each word ends up as a datum instead of being executed.
+(define weird-list `(0 1 ,(sqrt pi) pi ,(expt pi 2) ,(expt pi 3))) ; This list does what we would expect. By using a backtick instead of a quasiquote, we can denote things we want to be executed by using a comma.
